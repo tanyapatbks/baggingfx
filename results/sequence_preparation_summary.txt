@@ -1,0 +1,27 @@
+================================================================================
+SEQUENCE PREPARATION SUMMARY REPORT
+================================================================================
+Generated: 2025-06-07 22:58:24
+
+SEQUENCE CONFIGURATION
+----------------------------------------
+Window Size: 60 hours
+Prediction Horizon: 1 hour(s)
+Batch Size: 32
+
+TEMPORAL SPLIT CONFIGURATION
+----------------------------------------
+Training: 2018-01-01 to 2020-12-31
+Validation: 2021-01-01 to 2021-12-31
+Testing: 2022-01-01 to 2022-12-31
+
+SEQUENCE STATISTICS
+----------------------------------------
+Total Sequences: 61,308
+Features per Sequence: 15
+Target Currency: EURUSD
+Positive Labels: 39,732 (64.8%)
+Negative Labels: 21,576 (35.2%)
+Temporal Range: 2018-01-03 11:00:00 to 2024-12-31 22:00:00
+
+================================================================================

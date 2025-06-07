@@ -1,0 +1,33 @@
+================================================================================
+MULTI-CURRENCY INTEGRATION ANALYSIS REPORT
+================================================================================
+Generated: 2025-06-07 22:58:24
+
+INTEGRATION OVERVIEW
+----------------------------------------
+Currency Pairs: EURUSD, GBPUSD, USDJPY
+Total Records: 61,368
+Total Features: 15
+Features per Pair: 5
+Temporal Range: 2018-01-01 00:00:00 to 2024-12-31 23:00:00
+Duration: 2556 days
+
+TEMPORAL ALIGNMENT ANALYSIS
+----------------------------------------
+EURUSD: 100.00% aligned
+GBPUSD: 100.00% aligned
+USDJPY: 100.00% aligned
+Common Timestamps: 61,368
+
+CROSS-CURRENCY CORRELATION ANALYSIS
+----------------------------------------
+Mean Correlation: -0.009
+Correlation Range: [-0.377, 0.663]
+
+DATA QUALITY SUMMARY
+----------------------------------------
+Final Dataset Shape: (61368, 15)
+Missing Values: 0
+Data Types: 1 unique types
+
+================================================================================
