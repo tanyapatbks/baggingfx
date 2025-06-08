@@ -113,7 +113,7 @@ results/*.json
 results/*.tex
 logs/*.log
 logs/*.json
-
+log/
 # Data files (optional - uncomment if data files are too large)
 data/*.csv
 
