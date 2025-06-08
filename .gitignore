@@ -117,6 +117,10 @@ logs/*.json
 # Data files (optional - uncomment if data files are too large)
 data/*.csv
 
+*.pkl
+*.h5
+results/checkpoints/*
+
 # OS generated files
 .DS_Store
 .DS_Store?
