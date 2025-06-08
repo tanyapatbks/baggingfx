@@ -1,0 +1,15 @@
+{
+  "step": "preprocessing",
+  "experiment_id": "forex_cnn_lstm_20250608_225026",
+  "timestamp": "2025-06-08T22:50:27.419048",
+  "data_keys": [
+    "cleaned_data",
+    "returns_data",
+    "normalized_data",
+    "gap_analysis",
+    "feature_matrix",
+    "feature_names",
+    "preprocessor"
+  ],
+  "file_size_mb": 58.07397747039795
+}

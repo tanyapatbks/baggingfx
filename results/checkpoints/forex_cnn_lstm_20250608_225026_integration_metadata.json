@@ -1,0 +1,14 @@
+{
+  "step": "integration",
+  "experiment_id": "forex_cnn_lstm_20250608_225026",
+  "timestamp": "2025-06-08T22:50:27.464228",
+  "data_keys": [
+    "unified_data",
+    "features_array",
+    "feature_names_ordered",
+    "alignment_validation",
+    "correlation_analysis",
+    "integration_report_path"
+  ],
+  "file_size_mb": 14.518647193908691
+}

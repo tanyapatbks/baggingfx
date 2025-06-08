@@ -1,0 +1,13 @@
+{
+  "step": "model_architecture",
+  "experiment_id": "forex_cnn_lstm_20250608_225026",
+  "timestamp": "2025-06-08T22:50:28.603314",
+  "data_keys": [
+    "model",
+    "architecture",
+    "architecture_plot_path",
+    "complexity_analysis",
+    "model_variants"
+  ],
+  "file_size_mb": 1.617262840270996
+}

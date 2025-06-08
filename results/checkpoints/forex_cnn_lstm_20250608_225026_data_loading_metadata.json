@@ -1,0 +1,15 @@
+{
+  "step": "data_loading",
+  "experiment_id": "forex_cnn_lstm_20250608_225026",
+  "timestamp": "2025-06-08T22:50:27.290184",
+  "data_keys": [
+    "raw_data",
+    "structure_info",
+    "quality_info",
+    "date_info",
+    "stats_info",
+    "alignment_info",
+    "summary_path"
+  ],
+  "file_size_mb": 8.43644905090332
+}

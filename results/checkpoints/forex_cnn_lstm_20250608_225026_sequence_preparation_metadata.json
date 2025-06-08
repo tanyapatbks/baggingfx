@@ -1,0 +1,15 @@
+{
+  "step": "sequence_preparation",
+  "experiment_id": "forex_cnn_lstm_20250608_225026",
+  "timestamp": "2025-06-08T22:50:27.928451",
+  "data_keys": [
+    "X_sequences",
+    "y_labels",
+    "timestamps",
+    "data_splits",
+    "temporal_analysis",
+    "sequence_summary_path",
+    "unified_data"
+  ],
+  "file_size_mb": 369.1989583969116
+}
