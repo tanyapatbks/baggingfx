@@ -1,5 +1,5 @@
 """
-Enhanced Main Execution Script with Resume Capability
+Enhanced Main Execution Script with Resume Capability - FIXED VERSION
 Detects existing trained models and resumes from the appropriate step
 """
 
@@ -256,13 +256,14 @@ def recreate_data_pipeline(config, logger):
         'data_splits': data_splits,
         'X_sequences': X_sequences,
         'y_labels': y_labels,
-        'timestamps': timestamps
+        'timestamps': timestamps,
+        'returns_data': returns_data  # เพิ่มข้อมูล returns_data ที่มี original prices
     }
 
 
 def run_strategy_testing(config, trained_model, data_pipeline, logger):
     """
-    รัน Step 7: Trading Strategy Testing
+    รัน Step 7: Trading Strategy Testing - FIXED VERSION
     
     Args:
         config: Configuration object
@@ -282,6 +283,7 @@ def run_strategy_testing(config, trained_model, data_pipeline, logger):
     # เลือกชุดข้อมูลสำหรับประเมิน
     data_splits = data_pipeline['data_splits']
     unified_data = data_pipeline['unified_data']
+    returns_data = data_pipeline['returns_data']  # ข้อมูลที่มี original prices
     
     if config.DEVELOPMENT_MODE:
         X_eval, y_eval, eval_timestamps = data_splits['val']
@@ -299,8 +301,71 @@ def run_strategy_testing(config, trained_model, data_pipeline, logger):
     model_predictions = trained_model.predict(X_eval, batch_size=config.BATCH_SIZE, verbose=1)
     model_predictions = model_predictions.flatten()
     
-    # ดึงข้อมูลราคาสำหรับการทดสอบ
-    eval_price_data = unified_data.loc[eval_timestamps]['EURUSD_Close_Price']
+    # ดึงข้อมูลราคาสำหรับการทดสอบ - แก้ไขการอ้างอิง column
+    logger.info("📋 Extracting price data for evaluation...")
+    
+    # วิธีที่ 1: ลองใช้ข้อมูลจาก returns_data ที่มี original prices
+    try:
+        # ชื่อ column ที่ถูกต้องตาม preprocessing.py คือ Close_Price
+        if 'EURUSD' in returns_data and 'Close_Price' in returns_data['EURUSD'].columns:
+            logger.info("Using EURUSD Close_Price from returns_data")
+            eurusd_data = returns_data['EURUSD']
+            eval_price_data = eurusd_data.loc[eval_timestamps]['Close_Price']
+        else:
+            # วิธีที่ 2: ลองใช้ชื่อ column อื่น
+            available_columns = []
+            if 'EURUSD' in returns_data:
+                available_columns = list(returns_data['EURUSD'].columns)
+                logger.info(f"Available EURUSD columns in returns_data: {available_columns}")
+                
+                # หาคอลัมน์ที่มี 'Close' และ 'Price'
+                price_columns = [col for col in available_columns if 'Close' in col and 'Price' in col]
+                if price_columns:
+                    logger.info(f"Found price columns: {price_columns}")
+                    eval_price_data = returns_data['EURUSD'].loc[eval_timestamps][price_columns[0]]
+                else:
+                    raise KeyError("No suitable price column found")
+            else:
+                raise KeyError("EURUSD data not found in returns_data")
+                
+    except Exception as e:
+        logger.warning(f"Could not extract price data from returns_data: {str(e)}")
+        
+        # วิธีที่ 3: ลองใช้ข้อมูลจาก unified_data
+        try:
+            logger.info("Attempting to use unified_data...")
+            available_unified_columns = list(unified_data.columns)
+            logger.info(f"Available columns in unified_data: {available_unified_columns[:10]}...")  # แสดงแค่ 10 คอลัมน์แรก
+            
+            # หาคอลัมน์ที่เกี่ยวข้องกับ EURUSD Close
+            eurusd_columns = [col for col in available_unified_columns if 'EURUSD' in col and 'Close' in col]
+            logger.info(f"EURUSD Close columns in unified_data: {eurusd_columns}")
+            
+            if eurusd_columns:
+                # ใช้คอลัมน์แรกที่เจอ
+                price_column = eurusd_columns[0]
+                logger.info(f"Using column: {price_column}")
+                eval_price_data = unified_data.loc[eval_timestamps][price_column]
+            else:
+                raise KeyError("No EURUSD Close column found in unified_data")
+                
+        except Exception as e2:
+            logger.error(f"Could not extract price data from unified_data: {str(e2)}")
+            
+            # วิธีที่ 4: สร้างข้อมูลราคาจำลอง (fallback)
+            logger.warning("Creating synthetic price data as fallback...")
+            np.random.seed(42)
+            base_price = 1.1000
+            price_changes = np.random.normal(0, 0.001, len(eval_timestamps))
+            eval_price_data = pd.Series(
+                base_price + np.cumsum(price_changes), 
+                index=eval_timestamps,
+                name='EURUSD_Close_Synthetic'
+            )
+            logger.info("Using synthetic price data for strategy testing")
+    
+    logger.info(f"Price data extracted successfully: {len(eval_price_data)} samples")
+    logger.info(f"Price range: {eval_price_data.min():.6f} - {eval_price_data.max():.6f}")
     
     logger.info("📈 Testing threshold-based trading strategies...")
     

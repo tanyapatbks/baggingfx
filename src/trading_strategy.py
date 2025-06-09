@@ -1,5 +1,5 @@
 """
-Trading Strategy and Model Comparison Module
+Trading Strategy and Model Comparison Module - FIXED VERSION
 Implements trading decision logic, baseline strategies, and comprehensive performance comparison
 Handles threshold-based trading, risk management, and market regime analysis
 """
@@ -269,7 +269,7 @@ class TradingStrategyManager:
             return 0.0
     
     def _calculate_strategy_performance(self, trades: List[Dict], strategy_name: str) -> Dict:
-        """Calculate comprehensive performance metrics for a trading strategy"""
+        """Calculate comprehensive performance metrics for a trading strategy - FIXED VERSION"""
         if not trades:
             return {
                 'total_trades': 0,
@@ -283,7 +283,21 @@ class TradingStrategyManager:
         
         # Extract trade results
         trade_returns = [trade['pnl_pct'] for trade in trades]
-        holding_periods = [trade['holding_hours'] for trade in trades]
+        
+        # Extract holding periods - handle missing holding_hours gracefully
+        holding_periods = []
+        for trade in trades:
+            if 'holding_hours' in trade:
+                holding_periods.append(trade['holding_hours'])
+            elif 'entry_time' in trade and 'exit_time' in trade:
+                # Calculate holding period from timestamps
+                entry_time = pd.to_datetime(trade['entry_time']) if isinstance(trade['entry_time'], str) else trade['entry_time']
+                exit_time = pd.to_datetime(trade['exit_time']) if isinstance(trade['exit_time'], str) else trade['exit_time']
+                holding_hours = (exit_time - entry_time).total_seconds() / 3600
+                holding_periods.append(holding_hours)
+            else:
+                # Default holding period if no time information available
+                holding_periods.append(1.0)  # Assume 1 hour
         
         # Basic performance metrics
         total_return = sum(trade_returns)
@@ -313,7 +327,7 @@ class TradingStrategyManager:
             'avg_profit_per_trade': avg_profit_per_trade,
             'sharpe_ratio': sharpe_ratio,
             'max_drawdown': max_drawdown,
-            'avg_holding_hours': np.mean(holding_periods),
+            'avg_holding_hours': np.mean(holding_periods) if holding_periods else 0.0,
             'best_trade': max(trade_returns) if trade_returns else 0,
             'worst_trade': min(trade_returns) if trade_returns else 0,
             'avg_winning_trade': np.mean(profitable_trades) if profitable_trades else 0,
@@ -383,7 +397,9 @@ class TradingStrategyManager:
             'volatility': volatility,
             'sharpe_ratio': sharpe_ratio,
             'holding_period_hours': (timestamps[-1] - timestamps[0]).total_seconds() / 3600,
-            'total_trades': 1
+            'total_trades': 1,
+            'win_rate': 1.0 if total_return > 0 else 0.0,
+            'avg_profit_per_trade': total_return
         }
         
         self.logger.info(f"Buy-hold strategy: {total_return:.4f} total return, "
@@ -393,7 +409,7 @@ class TradingStrategyManager:
     
     def implement_rsi_strategy(self, prices: pd.Series, timestamps: pd.DatetimeIndex) -> Dict:
         """
-        Implement RSI-based trading strategy
+        Implement RSI-based trading strategy - FIXED VERSION
         
         Args:
             prices: Price series
@@ -425,14 +441,17 @@ class TradingStrategyManager:
                 if current_position == -1:
                     # Close short first
                     exit_price = prices.iloc[i]
+                    exit_time = timestamps[i]
                     pnl = (entry_price - exit_price) / entry_price
+                    holding_hours = (exit_time - entry_time).total_seconds() / 3600
                     trades.append({
                         'type': 'close_short',
                         'entry_time': entry_time,
-                        'exit_time': timestamps[i],
+                        'exit_time': exit_time,
                         'entry_price': entry_price,
                         'exit_price': exit_price,
                         'pnl_pct': pnl,
+                        'holding_hours': holding_hours,
                         'signal': 'rsi_oversold'
                     })
                 
@@ -446,14 +465,17 @@ class TradingStrategyManager:
                 if current_position == 1:
                     # Close long first
                     exit_price = prices.iloc[i]
+                    exit_time = timestamps[i]
                     pnl = (exit_price - entry_price) / entry_price
+                    holding_hours = (exit_time - entry_time).total_seconds() / 3600
                     trades.append({
                         'type': 'close_long',
                         'entry_time': entry_time,
-                        'exit_time': timestamps[i],
+                        'exit_time': exit_time,
                         'entry_price': entry_price,
                         'exit_price': exit_price,
                         'pnl_pct': pnl,
+                        'holding_hours': holding_hours,
                         'signal': 'rsi_overbought'
                     })
                 
@@ -463,6 +485,27 @@ class TradingStrategyManager:
                 entry_time = timestamps[i]
             
             positions[i] = current_position
+        
+        # Handle any remaining open position at the end
+        if current_position != 0:
+            exit_price = prices.iloc[-1]
+            exit_time = timestamps[-1]
+            if current_position == 1:
+                pnl = (exit_price - entry_price) / entry_price
+            else:
+                pnl = (entry_price - exit_price) / entry_price
+            
+            holding_hours = (exit_time - entry_time).total_seconds() / 3600
+            trades.append({
+                'type': f'close_{"long" if current_position == 1 else "short"}_end',
+                'entry_time': entry_time,
+                'exit_time': exit_time,
+                'entry_price': entry_price,
+                'exit_price': exit_price,
+                'pnl_pct': pnl,
+                'holding_hours': holding_hours,
+                'signal': 'end_of_data'
+            })
         
         performance = self._calculate_strategy_performance(trades, 'rsi')
         performance['rsi_parameters'] = {
@@ -487,7 +530,7 @@ class TradingStrategyManager:
     
     def implement_macd_strategy(self, prices: pd.Series, timestamps: pd.DatetimeIndex) -> Dict:
         """
-        Implement MACD-based trading strategy
+        Implement MACD-based trading strategy - FIXED VERSION
         
         Args:
             prices: Price series
@@ -531,14 +574,17 @@ class TradingStrategyManager:
                 if current_position == -1:
                     # Close short first
                     exit_price = prices.iloc[i]
+                    exit_time = timestamps[i]
                     pnl = (entry_price - exit_price) / entry_price
+                    holding_hours = (exit_time - entry_time).total_seconds() / 3600
                     trades.append({
                         'type': 'close_short',
                         'entry_time': entry_time,
-                        'exit_time': timestamps[i],
+                        'exit_time': exit_time,
                         'entry_price': entry_price,
                         'exit_price': exit_price,
                         'pnl_pct': pnl,
+                        'holding_hours': holding_hours,
                         'signal': 'macd_bullish_crossover'
                     })
                 
@@ -555,14 +601,17 @@ class TradingStrategyManager:
                 if current_position == 1:
                     # Close long first
                     exit_price = prices.iloc[i]
+                    exit_time = timestamps[i]
                     pnl = (exit_price - entry_price) / entry_price
+                    holding_hours = (exit_time - entry_time).total_seconds() / 3600
                     trades.append({
                         'type': 'close_long',
                         'entry_time': entry_time,
-                        'exit_time': timestamps[i],
+                        'exit_time': exit_time,
                         'entry_price': entry_price,
                         'exit_price': exit_price,
                         'pnl_pct': pnl,
+                        'holding_hours': holding_hours,
                         'signal': 'macd_bearish_crossover'
                     })
                 
@@ -572,6 +621,27 @@ class TradingStrategyManager:
                 entry_time = timestamps[i]
             
             positions[i] = current_position
+        
+        # Handle any remaining open position at the end
+        if current_position != 0:
+            exit_price = prices.iloc[-1]
+            exit_time = timestamps[-1]
+            if current_position == 1:
+                pnl = (exit_price - entry_price) / entry_price
+            else:
+                pnl = (entry_price - exit_price) / entry_price
+            
+            holding_hours = (exit_time - entry_time).total_seconds() / 3600
+            trades.append({
+                'type': f'close_{"long" if current_position == 1 else "short"}_end',
+                'entry_time': entry_time,
+                'exit_time': exit_time,
+                'entry_price': entry_price,
+                'exit_price': exit_price,
+                'pnl_pct': pnl,
+                'holding_hours': holding_hours,
+                'signal': 'end_of_data'
+            })
         
         performance = self._calculate_strategy_performance(trades, 'macd')
         performance['macd_parameters'] = {
@@ -966,3 +1036,4 @@ class TradingStrategyManager:
             insights.append(f"Lowest risk (max drawdown): {safest_strategy} ({safest_drawdown:.4f})")
         
         return insights
+                
